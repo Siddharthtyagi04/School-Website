@@ -15,10 +15,10 @@ export const Syllabus: React.FC<SyllabusProps> = ({ syllabus }) => {
   const [selectedClass, setSelectedClass] = useState<string>('All');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  // Class list up to Class 12
+  // Class list up to Class 10
   const classesList = [
-    'All', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 
-    'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'
+    'All', 'Nursery', 'KG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 
+    'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'
   ];
 
   // Filter syllabus by class

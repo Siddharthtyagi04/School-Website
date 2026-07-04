@@ -4,10 +4,11 @@
  */
 
 import React, { useState } from 'react';
-import { Post, SyllabusItem, HomeworkItem, Teacher, ContactSubmission, StaticContent } from '../db';
+import { Post, SyllabusItem, HomeworkItem, Teacher, ContactSubmission, StaticContent, VisitorLog, SchoolDB } from '../db';
 import { 
   BarChart, FileText, BookOpen, Layers, Users, Mail, Settings, Plus, Edit, Trash2, 
-  Check, Save, Clipboard, Calendar, ExternalLink, X, MapPin, Phone, MessageSquare 
+  Check, Save, Clipboard, Calendar, ExternalLink, X, MapPin, Phone, MessageSquare,
+  Eye, Globe, Clock, Laptop, RefreshCw, Filter, Search, ArrowUpRight, Activity
 } from 'lucide-react';
 
 interface DashboardAdminProps {
@@ -32,7 +33,19 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
   onUpdatePosts, onUpdateSyllabus, onUpdateHomework, onUpdateTeachers, onUpdateSubmissions, onUpdateStaticContent,
   onLogout, adminName
 }) => {
-  const [activeTab, setActiveTab] = useState<'stats' | 'posts' | 'syllabus' | 'homework' | 'teachers' | 'submissions' | 'site-editor'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'posts' | 'syllabus' | 'homework' | 'teachers' | 'submissions' | 'site-editor' | 'visitors'>('stats');
+
+  // Visitor states
+  const [visitorLogs, setVisitorLogs] = useState<VisitorLog[]>(() => SchoolDB.getVisitorLogs());
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterDevice, setFilterDevice] = useState<string>('all');
+  const [filterPage, setFilterPage] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [simPage, setSimPage] = useState<string>('Home');
+  const [simType, setSimType] = useState<'Parent' | 'Student' | 'Teacher' | 'Guest' | 'Prospective Student'>('Parent');
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [simSuccess, setSimSuccess] = useState<string>('');
 
   // Generic UI state
   const [showForm, setShowForm] = useState(false);
@@ -50,7 +63,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
   const [siteForm, setSiteForm] = useState<StaticContent>({ ...staticContent });
 
   // Class & Subject options
-  const classesList = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
+  const classesList = ['Nursery', 'KG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'];
 
   const resetForms = () => {
     setShowForm(false);
@@ -349,6 +362,16 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
         </button>
 
         <button 
+          onClick={() => { setActiveTab('visitors'); resetForms(); }}
+          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-t-lg text-xs font-bold transition cursor-pointer ${
+            activeTab === 'visitors' ? 'bg-red-750 text-white' : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Eye className="w-4 h-4" />
+          <span>Visitor Analytics</span>
+        </button>
+
+        <button 
           onClick={() => { setActiveTab('site-editor'); resetForms(); }}
           className={`flex items-center gap-1.5 px-4 py-2.5 rounded-t-lg text-xs font-bold transition cursor-pointer ${
             activeTab === 'site-editor' ? 'bg-red-750 text-white' : 'text-slate-600 hover:bg-slate-100'
@@ -362,7 +385,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
       {/* --- STATS PANEL --- */}
       {activeTab === 'stats' && (
         <div className="space-y-6 animate-fade-in">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
               <span className="text-slate-400 text-xs uppercase tracking-wider block">Total Notices</span>
               <span className="text-3xl font-extrabold text-slate-900">{posts.length}</span>
@@ -378,10 +401,29 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
               <span className="text-3xl font-extrabold text-slate-900">{homework.length}</span>
               <p className="text-[10px] text-slate-500">Parent-accessible tasks</p>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-1 col-span-2 md:col-span-1">
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
               <span className="text-slate-400 text-xs uppercase tracking-wider block">Teacher Staff</span>
               <span className="text-3xl font-extrabold text-slate-900">{teachers.length}</span>
               <p className="text-[10px] text-slate-500">Authorized instructors</p>
+            </div>
+            <div className="bg-amber-50/50 p-5 rounded-xl border border-amber-200 shadow-2xs space-y-1 col-span-2 lg:col-span-1 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start">
+                  <span className="text-slate-500 text-xs uppercase tracking-wider block">Site Page Views</span>
+                  <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                    <Activity className="w-2.5 h-2.5" />
+                    Live
+                  </span>
+                </div>
+                <span className="text-3xl font-extrabold text-red-800">{visitorLogs.length}</span>
+              </div>
+              <button 
+                onClick={() => setActiveTab('visitors')}
+                className="text-[10px] text-red-750 font-bold hover:underline flex items-center gap-0.5 mt-2 text-left"
+              >
+                <span>View Analytics Tab</span>
+                <ArrowUpRight className="w-3 h-3" />
+              </button>
             </div>
           </div>
 
@@ -879,11 +921,11 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase block">Assigned Classes *</label>
                   <input 
-                    type="text" required placeholder="e.g. Class 9, Class 10, Class 12"
+                    type="text" required placeholder="e.g. Class 9, Class 10, Nursery, KG"
                     value={teacherForm.classes} onChange={e => setTeacherForm({ ...teacherForm, classes: e.target.value })}
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:ring-2 focus:ring-amber-500"
                   />
-                  <span className="text-[10px] text-slate-400 block">Separated by commas. Example: Class 10, Class 12</span>
+                  <span className="text-[10px] text-slate-400 block">Separated by commas. Example: Class 10, Nursery, KG</span>
                 </div>
               </div>
 
@@ -1126,6 +1168,625 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
           </div>
         </form>
       )}
+
+      {/* --- VISITOR ANALYTICS PANEL --- */}
+      {activeTab === 'visitors' && (() => {
+        // Compute statistics
+        const totalVisitsCount = visitorLogs.length;
+        const uniqueUsersCount = new Set(visitorLogs.map(l => l.visitorId)).size;
+        
+        const totalDuration = visitorLogs.reduce((acc, curr) => acc + curr.durationSeconds, 0);
+        const avgDurationSecs = totalVisitsCount ? Math.round(totalDuration / totalVisitsCount) : 0;
+        const avgDurationMinSec = `${Math.floor(avgDurationSecs / 60)}m ${avgDurationSecs % 60}s`;
+
+        const uniqueLocationsCount = new Set(visitorLogs.map(l => l.location)).size;
+
+        // 7-day trend
+        const dates7 = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          return d.toISOString().split('T')[0];
+        }).reverse();
+
+        const trendData = dates7.map(date => {
+          const displayDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const count = visitorLogs.filter(l => l.date === date).length;
+          return { date, displayDate, count };
+        });
+
+        const maxTrendVal = Math.max(...trendData.map(t => t.count), 1);
+
+        // Visitor types breakdown
+        const visitorRolesList = ['Parent', 'Student', 'Teacher', 'Guest', 'Prospective Student'] as const;
+        const roleColors: Record<string, string> = {
+          'Parent': 'bg-red-750',
+          'Student': 'bg-indigo-600',
+          'Teacher': 'bg-emerald-600',
+          'Guest': 'bg-slate-500',
+          'Prospective Student': 'bg-amber-500'
+        };
+        const roleTextColors: Record<string, string> = {
+          'Parent': 'text-red-750',
+          'Student': 'text-indigo-600',
+          'Teacher': 'text-emerald-600',
+          'Guest': 'text-slate-500',
+          'Prospective Student': 'text-amber-500'
+        };
+        const roleBadgeColors: Record<string, string> = {
+          'Parent': 'bg-red-50 text-red-750 border-red-200/50',
+          'Student': 'bg-indigo-50 text-indigo-700 border-indigo-200/50',
+          'Teacher': 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+          'Guest': 'bg-slate-50 text-slate-700 border-slate-200/50',
+          'Prospective Student': 'bg-amber-50 text-amber-700 border-amber-200/50'
+        };
+
+        const roleCounts = visitorRolesList.map(role => {
+          const count = visitorLogs.filter(l => l.visitorType === role).length;
+          const pct = totalVisitsCount ? Math.round((count / totalVisitsCount) * 100) : 0;
+          return { role, count, pct };
+        }).sort((a, b) => b.count - a.count);
+
+        // Device breakdown
+        const deviceTypesList = ['Mobile', 'Desktop', 'Tablet'] as const;
+        const deviceColors: Record<string, string> = {
+          'Mobile': 'bg-purple-600',
+          'Desktop': 'bg-sky-600',
+          'Tablet': 'bg-amber-500'
+        };
+        const deviceCounts = deviceTypesList.map(dev => {
+          const count = visitorLogs.filter(l => l.device === dev).length;
+          const pct = totalVisitsCount ? Math.round((count / totalVisitsCount) * 100) : 0;
+          return { dev, count, pct };
+        }).sort((a, b) => b.count - a.count);
+
+        // Top Pages
+        const pageCountsMap: Record<string, number> = {};
+        visitorLogs.forEach(l => {
+          pageCountsMap[l.page] = (pageCountsMap[l.page] || 0) + 1;
+        });
+        const topPagesList = Object.entries(pageCountsMap)
+          .map(([name, count]) => ({
+            name,
+            count,
+            pct: totalVisitsCount ? Math.round((count / totalVisitsCount) * 100) : 0
+          }))
+          .sort((a, b) => b.count - a.count);
+
+        // Unique Pages List for dropdown filters
+        const uniquePagesList = Array.from(new Set(visitorLogs.map(l => l.page)));
+
+        // Top Referrers
+        const referrerCountsMap: Record<string, number> = {};
+        visitorLogs.forEach(l => {
+          referrerCountsMap[l.referrer] = (referrerCountsMap[l.referrer] || 0) + 1;
+        });
+        const topReferrersList = Object.entries(referrerCountsMap)
+          .map(([name, count]) => ({
+            name,
+            count,
+            pct: totalVisitsCount ? Math.round((count / totalVisitsCount) * 100) : 0
+          }))
+          .sort((a, b) => b.count - a.count);
+
+        // Filtering
+        const filteredLogsList = visitorLogs.filter(l => {
+          const matchType = filterType === 'all' || l.visitorType === filterType;
+          const matchDevice = filterDevice === 'all' || l.device === filterDevice;
+          const matchPage = filterPage === 'all' || l.page === filterPage;
+          
+          const query = searchQuery.toLowerCase().trim();
+          const matchSearch = !query ? true : (
+            l.visitorId.toLowerCase().includes(query) ||
+            l.location.toLowerCase().includes(query) ||
+            l.referrer.toLowerCase().includes(query) ||
+            l.page.toLowerCase().includes(query) ||
+            l.visitorType.toLowerCase().includes(query) ||
+            l.date.includes(query)
+          );
+          return matchType && matchDevice && matchPage && matchSearch;
+        });
+
+        // Pagination
+        const itemsPerPage = 12;
+        const totalPages = Math.ceil(filteredLogsList.length / itemsPerPage) || 1;
+        const paginatedLogs = filteredLogsList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+        const handleSimulateVisit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setIsSimulating(true);
+          setSimSuccess('');
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          SchoolDB.recordVisit(simPage, simType);
+          const fresh = SchoolDB.getVisitorLogs();
+          setVisitorLogs(fresh);
+          setIsSimulating(false);
+          setSimSuccess(`Dynamic entry logged: ${simType} clicked on standard "${simPage}" tab!`);
+          setTimeout(() => setSimSuccess(''), 4000);
+        };
+
+        const handleResetVisitorLogs = () => {
+          if (confirm("Are you sure you want to reset & re-seed visitor traffic logs? This will regenerate ~340 fresh records across the last 7 days.")) {
+            const seeded = SchoolDB.generateMockVisitorLogs();
+            SchoolDB.saveVisitorLogs(seeded);
+            setVisitorLogs(seeded);
+            setCurrentPage(1);
+          }
+        };
+
+        return (
+          <div className="space-y-8 animate-fade-in">
+            
+            {/* Header section with reset */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 text-white p-6 rounded-2xl shadow-md">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="bg-red-650 text-white font-extrabold text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">TELEMETRY</span>
+                  <h2 className="text-lg md:text-xl font-bold tracking-tight">Website Traffic & Audience Insights</h2>
+                </div>
+                <p className="text-slate-400 text-xs max-w-xl">
+                  Real-time reporting on PKLJSVM portal visitors, access devices, regional queries, and parent-student click interactions.
+                </p>
+              </div>
+              <button 
+                onClick={handleResetVisitorLogs}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold px-4 py-2 rounded-lg text-xs tracking-wide uppercase transition shrink-0 cursor-pointer flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Re-seed Mock Logs</span>
+              </button>
+            </div>
+
+            {/* KPI metrics row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-red-50 text-red-700 shrink-0">
+                  <Eye className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[10px] uppercase tracking-wider block font-bold">Total Page Views</span>
+                  <span className="text-2xl font-extrabold text-slate-950">{totalVisitsCount}</span>
+                  <p className="text-[9px] text-emerald-600 font-semibold flex items-center gap-0.5 mt-0.5">
+                    <Activity className="w-3 h-3" /> Live session hits
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-indigo-50 text-indigo-700 shrink-0">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[10px] uppercase tracking-wider block font-bold">Unique Visitors</span>
+                  <span className="text-2xl font-extrabold text-slate-950">{uniqueUsersCount}</span>
+                  <p className="text-[9px] text-slate-500 mt-0.5">Estimated by footprint ID</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-emerald-50 text-emerald-700 shrink-0">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[10px] uppercase tracking-wider block font-bold">Avg. Session Time</span>
+                  <span className="text-2xl font-extrabold text-slate-950">{avgDurationMinSec}</span>
+                  <p className="text-[9px] text-slate-500 mt-0.5">Active engagement portal average</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-amber-50 text-amber-700 shrink-0">
+                  <Globe className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[10px] uppercase tracking-wider block font-bold">Regional Reach</span>
+                  <span className="text-2xl font-extrabold text-slate-950">{uniqueLocationsCount} Locations</span>
+                  <p className="text-[9px] text-slate-500 mt-0.5">NCR regional IP locations</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Graphs row */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Left Column: 7-Day Trend (8-span) */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs lg:col-span-7 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm tracking-tight mb-1">Page View Traffic Trend</h3>
+                  <p className="text-slate-500 text-xs mb-4">Total recorded session views for each of the last seven calendar days.</p>
+                </div>
+
+                <div className="h-64 flex items-end gap-3 pt-6 pb-2 px-2 border-b border-slate-100">
+                  {trendData.map((day) => {
+                    const pct = (day.count / maxTrendVal) * 100;
+                    return (
+                      <div key={day.date} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
+                        <div className="relative w-full flex flex-col items-center justify-end h-[85%]">
+                          {/* Tooltip */}
+                          <div className="absolute -top-9 scale-0 group-hover:scale-100 transition-all duration-150 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow z-10 pointer-events-none whitespace-nowrap">
+                            {day.count} views ({day.date})
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-700 mb-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                            {day.count}
+                          </span>
+                          <div 
+                            style={{ height: `${pct}%` }} 
+                            className="w-full bg-linear-to-t from-red-800 to-red-650 rounded-t group-hover:from-amber-500 group-hover:to-amber-400 transition-all duration-300 shadow-2xs relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-white/10 w-1/2 -skew-x-12" />
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-500 group-hover:text-slate-950 transition-colors whitespace-nowrap truncate max-w-full">
+                          {day.displayDate}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Column: Demographics Breakdowns (5-span) */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs lg:col-span-5 space-y-6">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm tracking-tight mb-1">Audience Composition</h3>
+                  <p className="text-slate-500 text-xs">Distribution of logged visits by verified visitor type and system devices.</p>
+                </div>
+
+                {/* Visitor Role Distribution */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-semibold text-slate-800">Interacting Roles</span>
+                    <span className="text-slate-500 font-mono text-[10px]">{totalVisitsCount} records</span>
+                  </div>
+
+                  {/* Multi-colored Segmented Bar */}
+                  <div className="w-full h-3.5 bg-slate-100 rounded-full flex overflow-hidden">
+                    {roleCounts.map((item) => (
+                      item.count > 0 && (
+                        <div 
+                          key={item.role} 
+                          style={{ width: `${item.pct}%` }} 
+                          className={`${roleColors[item.role]} transition-all duration-300 hover:opacity-85`}
+                          title={`${item.role}: ${item.count} (${item.pct}%)`}
+                        />
+                      )
+                    ))}
+                  </div>
+
+                  {/* Role Legend List */}
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    {roleCounts.map((item) => (
+                      <div key={item.role} className="flex items-center gap-1.5 text-[10px] font-medium text-slate-600">
+                        <span className={`w-2.5 h-2.5 rounded-full ${roleColors[item.role]} shrink-0`} />
+                        <span className="truncate">{item.role}</span>
+                        <span className="font-bold font-mono text-slate-900 shrink-0 ml-auto">{item.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Device breakdown */}
+                <div className="space-y-2 border-t border-slate-150 pt-4">
+                  <span className="font-semibold text-slate-800 text-xs block">Device Analytics</span>
+                  <div className="space-y-2">
+                    {deviceCounts.map((item) => (
+                      <div key={item.dev} className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] text-slate-600">
+                          <span className="capitalize">{item.dev} user session</span>
+                          <span className="font-bold font-mono text-slate-950">{item.count} ({item.pct}%)</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            style={{ width: `${item.pct}%` }} 
+                            className={`h-full ${deviceColors[item.dev] || 'bg-slate-500'} rounded-full`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Pages and Referral Sources Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Popular Pages */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm tracking-tight">Most Visited Portals</h3>
+                  <p className="text-slate-500 text-xs">Highly demanded modules ordered by school audience clicks.</p>
+                </div>
+                <div className="space-y-3">
+                  {topPagesList.slice(0, 5).map((page, index) => (
+                    <div key={page.name} className="flex items-center justify-between text-xs gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center font-bold text-[10px] text-slate-500 shrink-0">
+                          {index + 1}
+                        </span>
+                        <span className="font-semibold text-slate-800 truncate">{page.name} tab</span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden hidden sm:block">
+                          <div style={{ width: `${page.pct}%` }} className="bg-red-800 h-full rounded-full" />
+                        </div>
+                        <span className="font-mono text-[10px] font-bold text-slate-900 w-12 text-right">
+                          {page.count} hits
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Referrers */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm tracking-tight">Referral Channels</h3>
+                  <p className="text-slate-500 text-xs">Origin sources sending traffic queries to our school website.</p>
+                </div>
+                <div className="space-y-3">
+                  {topReferrersList.slice(0, 5).map((ref, index) => (
+                    <div key={ref.name} className="flex items-center justify-between text-xs gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-5 h-5 bg-indigo-50 text-indigo-700 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">
+                          {index + 1}
+                        </span>
+                        <span className="font-semibold text-slate-800 truncate">{ref.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden hidden sm:block">
+                          <div style={{ width: `${ref.pct}%` }} className="bg-indigo-600 h-full rounded-full" />
+                        </div>
+                        <span className="font-mono text-[10px] font-bold text-slate-900 w-12 text-right">
+                          {ref.pct}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive visit simulator tool */}
+            <div className="bg-linear-to-br from-amber-50 to-orange-50 border border-amber-200 p-6 rounded-xl space-y-4 shadow-3xs">
+              <div className="space-y-1">
+                <h3 className="font-bold text-amber-900 text-sm flex items-center gap-1.5">
+                  <Activity className="w-4.5 h-4.5 text-amber-700" />
+                  Live Visitor Sandbox Simulator
+                </h3>
+                <p className="text-amber-800 text-xs leading-relaxed">
+                  Test the responsive system reporting! Select a target page and user role below, then click "Simulate portal Visit". The dashboard will register a live hit in local storage and instantly animate the counts, percentages, and logs!
+                </p>
+              </div>
+
+              <form onSubmit={handleSimulateVisit} className="flex flex-wrap items-end gap-4 bg-white/60 p-4 rounded-lg">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-amber-900 uppercase block">Portals to View</label>
+                  <select 
+                    value={simPage} 
+                    onChange={e => setSimPage(e.target.value)}
+                    className="bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-amber-500 w-44"
+                  >
+                    <option value="Home">Home (Welcome Desk)</option>
+                    <option value="Notices">Notices (Ledger)</option>
+                    <option value="Syllabus">Syllabus (Curriculums)</option>
+                    <option value="Homework">Homework (Registries)</option>
+                    <option value="About">About (Values)</option>
+                    <option value="Contact">Contact (Admission Desk)</option>
+                    <option value="Gallery">Gallery (Campus)</option>
+                    <option value="Login">Login Panel</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-amber-900 uppercase block">Visitor Persona Type</label>
+                  <select 
+                    value={simType} 
+                    onChange={e => setSimType(e.target.value as any)}
+                    className="bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-amber-500 w-44"
+                  >
+                    <option value="Parent">Parent (Current Guardian)</option>
+                    <option value="Student">Student (Class Nursery-10 batches)</option>
+                    <option value="Prospective Student">Prospective Student / Family</option>
+                    <option value="Guest">Guest (General Visitor)</option>
+                    <option value="Teacher">Teacher (Staff account)</option>
+                  </select>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isSimulating}
+                  className="bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white font-extrabold text-xs px-5 py-2.5 rounded-md transition duration-200 uppercase cursor-pointer flex items-center gap-1.5"
+                >
+                  {isSimulating ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Registering hit...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Simulate Portal Visit</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {simSuccess && (
+                <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold px-4 py-2.5 rounded animate-bounce">
+                  ✨ {simSuccess}
+                </div>
+              )}
+            </div>
+
+            {/* Interactive log table with Filters */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs space-y-4 p-6">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">Granular Visitor Session Logs</h3>
+                  <p className="text-slate-500 text-xs">Explore and inspect exact tracking events stored securely on this client.</p>
+                </div>
+
+                {/* Quick query filters reset */}
+                {(filterType !== 'all' || filterDevice !== 'all' || filterPage !== 'all' || searchQuery !== '') && (
+                  <button 
+                    onClick={() => { setFilterType('all'); setFilterDevice('all'); setFilterPage('all'); setSearchQuery(''); setCurrentPage(1); }}
+                    className="text-xs text-red-700 hover:underline font-bold flex items-center gap-0.5 shrink-0 self-start"
+                  >
+                    <span>Clear Search Filters</span>
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filters grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-lg border border-slate-150">
+                <div className="space-y-1">
+                  <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Search Location/Referrer/ID</span>
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      placeholder="Type keywords..." 
+                      value={searchQuery}
+                      onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                      className="w-full bg-white border border-slate-350 rounded px-2.5 py-1 text-xs pl-7 focus:outline-hidden focus:border-red-700"
+                    />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Visitor Role</span>
+                  <select 
+                    value={filterType} 
+                    onChange={e => { setFilterType(e.target.value); setCurrentPage(1); }}
+                    className="w-full bg-white border border-slate-350 rounded px-2 py-1 text-xs focus:outline-hidden"
+                  >
+                    <option value="all">All Roles</option>
+                    {visitorRolesList.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Access Device</span>
+                  <select 
+                    value={filterDevice} 
+                    onChange={e => { setFilterDevice(e.target.value); setCurrentPage(1); }}
+                    className="w-full bg-white border border-slate-350 rounded px-2 py-1 text-xs focus:outline-hidden"
+                  >
+                    <option value="all">All Devices</option>
+                    {deviceTypesList.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Destination Page</span>
+                  <select 
+                    value={filterPage} 
+                    onChange={e => { setFilterPage(e.target.value); setCurrentPage(1); }}
+                    className="w-full bg-white border border-slate-350 rounded px-2 py-1 text-xs focus:outline-hidden"
+                  >
+                    <option value="all">All Pages</option>
+                    {uniquePagesList.sort().map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Total results match */}
+              <div className="text-[11px] text-slate-500 flex justify-between items-center px-1">
+                <span>Displaying <strong>{paginatedLogs.length}</strong> items of {filteredLogsList.length} matching criteria</span>
+              </div>
+
+              {/* Table ledger */}
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[9px]">
+                      <th className="py-3 px-4">Timestamp</th>
+                      <th className="py-3 px-4">Visitor Footprint ID</th>
+                      <th className="py-3 px-4">Role Persona</th>
+                      <th className="py-3 px-4">Requested Page</th>
+                      <th className="py-3 px-4">Regional NCR Location</th>
+                      <th className="py-3 px-4">Access Device</th>
+                      <th className="py-3 px-4">Referrer Source</th>
+                      <th className="py-3 px-4 text-right">Stay Length</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-150">
+                    {paginatedLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-slate-400">
+                          No matching visitor sessions found for current filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedLogs.map((log) => {
+                        const dateFormatted = new Date(log.timestamp).toLocaleDateString('en-US', {
+                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+                        });
+                        return (
+                          <tr key={log.id} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="py-3 px-4 font-mono text-[10px] text-slate-500 whitespace-nowrap">{dateFormatted}</td>
+                            <td className="py-3 px-4 font-mono text-slate-700">{log.visitorId}</td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border uppercase ${roleBadgeColors[log.visitorType] || 'bg-slate-100 text-slate-600'}`}>
+                                {log.visitorType}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              <span className="font-semibold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">
+                                /{log.page.toLowerCase()}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-slate-600">{log.location}</td>
+                            <td className="py-3 px-4 text-slate-600 whitespace-nowrap capitalize">
+                              <span className="mr-1">
+                                {log.device === 'Mobile' ? '📱' : log.device === 'Tablet' ? '📟' : '💻'}
+                              </span>
+                              {log.device}
+                            </td>
+                            <td className="py-3 px-4 text-slate-500 whitespace-nowrap">{log.referrer}</td>
+                            <td className="py-3 px-4 font-mono text-right text-slate-900 whitespace-nowrap">
+                              {log.durationSeconds}s
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-bold px-3 py-1.5 rounded border border-slate-300 text-xs transition uppercase tracking-wide cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-xs text-slate-500 font-medium">
+                    Page <strong>{currentPage}</strong> of {totalPages}
+                  </span>
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-bold px-3 py-1.5 rounded border border-slate-300 text-xs transition uppercase tracking-wide cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+
+          </div>
+        );
+      })()}
 
     </div>
   );

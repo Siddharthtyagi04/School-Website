@@ -6,11 +6,12 @@
 import React, { useState } from 'react';
 import { Post, StaticContent } from '../db';
 import { ArrowRight, BookOpen, Calendar, MapPin, Phone, GraduationCap, Award, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
+import { VidyaBharatiLogo } from './Logos';
 
 // Import original school photos
-import schoolBuildingImg from '../assets/images/school_building_1783165045771.jpg';
-import playgroundImg from '../assets/images/playground_1783165067122.jpg';
-import schoolEntranceImg from '../assets/images/school_entrance_1783165105852.jpg';
+import schoolBuildingImg from '../assets/images/SlideImage1.jpeg';
+import playgroundImg from '../assets/images/download.jpeg';
+import schoolEntranceImg from '../assets/images/SchoolGate.jpeg';
 import principalDeskImg from '../assets/images/principal_desk_1783165084646.jpg';
 
 interface HomeProps {
@@ -129,7 +130,7 @@ export const Home: React.FC<HomeProps> = ({ staticContent, latestPosts, onNaviga
             </div>
             <h3 className="text-xl font-bold">Admissions 2026-27</h3>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Registrations are active for Class Nursery to 11. Secure your child's moral and intellectual growth with Vidya Bharati's values.
+              Registrations are active for Nursery, KG, and Classes 1 to 10. Secure your child's moral and intellectual growth with Vidya Bharati's values.
             </p>
           </div>
           <button 
@@ -183,11 +184,22 @@ export const Home: React.FC<HomeProps> = ({ staticContent, latestPosts, onNaviga
         {/* Welcome & Principal Desk */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <span className="text-red-750 font-bold tracking-wider text-xs uppercase block">ABOUT PREMWATI KUNJI LAL JAIN SVM</span>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Igniting Wisdom, Cultivating Culture
-            </h2>
-            <div className="h-1 w-20 bg-amber-500 rounded" />
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+              <div className="space-y-4 flex-1">
+                <span className="text-red-750 font-bold tracking-wider text-xs uppercase block">ABOUT PREMWATI KUNJI LAL JAIN SVM</span>
+                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Igniting Wisdom, Cultivating Culture
+                </h2>
+                <div className="h-1 w-20 bg-amber-500 rounded" />
+              </div>
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl shrink-0 self-stretch sm:self-auto">
+                <VidyaBharatiLogo className="w-10 h-12" />
+                <div>
+                  <span className="text-[10px] text-amber-600 font-extrabold tracking-wider uppercase block">AFFILIATED UNIT</span>
+                  <span className="text-xs text-slate-800 font-serif font-bold block">Vidya Bharati</span>
+                </div>
+              </div>
+            </div>
             <p className="text-slate-600 leading-relaxed text-sm">
               {staticContent.history}
             </p>

@@ -7,7 +7,7 @@ import React from 'react';
 import { StaticContent } from '../db';
 import { Target, Eye, ShieldCheck, Users, Milestone, Award } from 'lucide-react';
 
-import schoolEntranceImg from '../assets/images/school_entrance_1783165105852.jpg';
+import schoolEntranceImg from '../assets/images/SchoolGate.jpeg';
 
 interface AboutProps {
   staticContent: StaticContent;
@@ -120,7 +120,7 @@ export const About: React.FC<AboutProps> = ({ staticContent }) => {
             <Award className="w-10 h-10 text-amber-500 mx-auto" />
             <h4 className="font-bold text-slate-900 text-sm">Affiliation & Board</h4>
             <p className="text-slate-500 text-xs">
-              Affiliated to CBSE Board, New Delhi and UP Board Curriculum systems. Providing education from Nursery up to Class XII in Arts, Science, and Commerce streams.
+              Affiliated to CBSE Board, New Delhi and UP Board Curriculum systems. Providing education from Nursery up to Class 10 with comprehensive scientific and moral learning.
             </p>
           </div>
           <div className="bg-slate-50 p-3 rounded-lg text-center text-xs font-semibold text-slate-700">

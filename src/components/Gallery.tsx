@@ -7,10 +7,11 @@ import React, { useState } from 'react';
 import { Image, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Import original school photos
-import schoolBuildingImg from '../assets/images/school_building_1783165045771.jpg';
-import playgroundImg from '../assets/images/playground_1783165067122.jpg';
-import schoolEntranceImg from '../assets/images/school_entrance_1783165105852.jpg';
+import schoolBuildingImg from '../assets/images/SlideImage1.jpeg';
+import playgroundImg from '../assets/images/download.jpeg';
+import schoolEntranceImg from '../assets/images/SchoolGate.jpeg';
 import principalDeskImg from '../assets/images/principal_desk_1783165084646.jpg';
+import schoolCampusImg2 from '../assets/images/SlideImage2.jpg';
 
 export const Gallery: React.FC = () => {
   const [activeImageIdx, setActiveImageIdx] = useState<number | null>(null);
@@ -44,14 +45,14 @@ export const Gallery: React.FC = () => {
     {
       title: "Campus Pathway & Building View",
       category: "Campus Infrastructure",
-      img: schoolBuildingImg,
-      desc: "Serene view of our campus building showing the main entrance brick pathways and beautiful trees."
+      img: schoolCampusImg2,
+      desc: "Serene panoramic view of our campus building showing the main entrance brick pathways and beautiful trees."
     },
     {
-      title: "Smart Science & Physics Lab",
-      category: "Facilities",
-      img: schoolEntranceImg,
-      desc: "Physics, biology, and chemistry instrumentation workbench used by senior secondary CBSE batches."
+      title: "School Administrative Premises",
+      category: "Administration",
+      img: principalDeskImg,
+      desc: "Premises and offices designed for active school administration, records, and guardian inquiry."
     }
   ];
 

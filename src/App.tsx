@@ -53,6 +53,7 @@ export default function App() {
   useEffect(() => {
     SchoolDB.init();
     refreshAllData();
+    SchoolDB.recordVisit('Home');
   }, []);
 
   const refreshAllData = () => {
@@ -122,6 +123,8 @@ export default function App() {
     setActiveTab(tab as TabRoute);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    const pageName = tab.charAt(0).toUpperCase() + tab.slice(1);
+    SchoolDB.recordVisit(pageName);
   };
 
   // Render correct route
@@ -231,7 +234,7 @@ export default function App() {
           </div>
           <div className="flex-1 truncate hidden md:block">
             <span className="text-slate-200 font-light font-mono">
-              &bull; Nursery to Class 12 registrations open &bull; Physics, Chemistry & Computer Labs renovated &bull; Sanskrit, Yoga & Modern Computer Coding.
+              &bull; Nursery, KG, and Classes 1 to 10 registrations open &bull; Science & Computer Labs renovated &bull; Sanskrit, Yoga & Modern Computer Coding.
             </span>
           </div>
           <button 
@@ -280,7 +283,6 @@ export default function App() {
           >
             <div className="flex items-center gap-2">
               <SchoolLogo className="w-12 h-12 group-hover:scale-105 transition" />
-              <VidyaBharatiLogo className="w-9 h-11 group-hover:scale-105 transition hidden sm:block" />
             </div>
             
             <div className="space-y-0.5">

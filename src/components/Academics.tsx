@@ -44,10 +44,10 @@ export const Academics: React.FC = () => {
       features: ["Advanced Sanskrit Grammar", "Computer Programming Introduction", "Laboratory Exposure", "Co-curricular Clubs"]
     },
     {
-      name: "Secondary & Senior Secondary",
-      classes: "Class 9 to Class 12",
-      desc: "Rigorous CBSE & UP Board examination training spanning Science, Commerce, and Arts streams with practical testing.",
-      features: ["Stream Specific Classrooms", "Mock Board Assessments", "Competitive Entrance Foundations", "Advanced Laboratory Projects"]
+      name: "Secondary Section",
+      classes: "Class 9 to Class 10",
+      desc: "Rigorous CBSE & UP Board examination training spanning core sciences, mathematics, languages, and computer studies with practical testing.",
+      features: ["Core Board Preparation", "Mock Board Assessments", "Competitive Entrance Foundations", "Advanced Laboratory Projects"]
     }
   ];
 
