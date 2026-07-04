@@ -26,11 +26,20 @@ export const Syllabus: React.FC<SyllabusProps> = ({ syllabus }) => {
     ? syllabus 
     : syllabus.filter(item => item.classLevel === selectedClass);
 
-  const handleDownload = (id: string, fileName: string) => {
+  const handleDownload = (id: string, fileName: string, fileUrl?: string) => {
     setDownloadingId(id);
     setTimeout(() => {
       setDownloadingId(null);
-      alert(`Syllabus downloaded successfully: ${fileName}`);
+      if (fileUrl && fileUrl !== '#') {
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert(`Syllabus downloaded successfully: ${fileName}`);
+      }
     }, 1200);
   };
 
@@ -99,7 +108,7 @@ export const Syllabus: React.FC<SyllabusProps> = ({ syllabus }) => {
                   <span className="text-[11px] font-medium truncate">{item.fileName}</span>
                 </div>
                 <button
-                  onClick={() => handleDownload(item.id, item.fileName)}
+                  onClick={() => handleDownload(item.id, item.fileName, item.fileUrl)}
                   disabled={downloadingId === item.id}
                   className="bg-slate-950 hover:bg-slate-900 text-white px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center gap-1.5"
                 >

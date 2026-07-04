@@ -8,7 +8,7 @@ import { Post, SyllabusItem, HomeworkItem, Teacher, ContactSubmission, StaticCon
 import { 
   BarChart, FileText, BookOpen, Layers, Users, Mail, Settings, Plus, Edit, Trash2, 
   Check, Save, Clipboard, Calendar, ExternalLink, X, MapPin, Phone, MessageSquare,
-  Eye, Globe, Clock, Laptop, RefreshCw, Filter, Search, ArrowUpRight, Activity
+  Eye, Globe, Clock, Laptop, RefreshCw, Filter, Search, ArrowUpRight, Activity, Upload
 } from 'lucide-react';
 
 interface DashboardAdminProps {
@@ -27,6 +27,126 @@ interface DashboardAdminProps {
   onLogout: () => void;
   adminName: string;
 }
+
+interface FileUploaderProps {
+  fileName: string;
+  fileUrl?: string;
+  onFileChange: (name: string, url: string) => void;
+  onClear: () => void;
+  label?: string;
+}
+
+const FileUploader: React.FC<FileUploaderProps> = ({ 
+  fileName, 
+  fileUrl, 
+  onFileChange, 
+  onClear,
+  label = "Attached File / Document" 
+}) => {
+  const [dragActive, setDragActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const processFile = (file: File) => {
+    setIsProcessing(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        onFileChange(file.name, event.target.result as string);
+      }
+      setIsProcessing(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      processFile(e.target.files[0]);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5 text-left">
+      <label className="text-xs font-bold text-slate-700 uppercase block">{label}</label>
+      
+      {isProcessing ? (
+        <div className="flex items-center justify-center border border-slate-300 bg-slate-50 rounded-lg p-5">
+          <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mr-2" />
+          <span className="text-xs text-slate-500">Reading file...</span>
+        </div>
+      ) : fileName ? (
+        <div className="flex items-center justify-between border border-emerald-200 bg-emerald-50/40 rounded-lg p-3">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="p-2 bg-emerald-500 text-white rounded-md flex-shrink-0">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div className="text-left overflow-hidden">
+              <p className="text-xs font-bold text-slate-800 truncate max-w-[200px] md:max-w-xs">{fileName}</p>
+              <p className="text-[10px] text-emerald-600 font-semibold">
+                {fileUrl && fileUrl.startsWith('data:') ? '✓ Real File Ready' : '✓ Custom File Attached'}
+              </p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onClick={onClear} 
+            className="text-xs text-rose-600 hover:text-rose-800 font-bold p-1 hover:bg-rose-50 rounded"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <div
+          onDragEnter={handleDrag}
+          onDragOver={handleDrag}
+          onDragLeave={handleDrag}
+          onDrop={handleDrop}
+          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition flex flex-col items-center justify-center gap-2 group cursor-pointer ${
+            dragActive 
+              ? 'border-amber-500 bg-amber-50/20' 
+              : 'border-slate-300 hover:border-slate-400 bg-white'
+          }`}
+        >
+          <input 
+            type="file" 
+            id={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            onChange={handleChange}
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.txt,.zip"
+          />
+          <Upload className="w-8 h-8 text-slate-400 group-hover:text-amber-500 transition" />
+          <div>
+            <p className="text-xs font-bold text-slate-700">
+              Drag & drop your file here, or <span className="text-amber-600">browse</span>
+            </p>
+            <p className="text-[10px] text-slate-400 mt-1">
+              Supports any type of file (PDF, Word, PPT, Excel, Images, etc.)
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
   posts, syllabus, homework, teachers, submissions, staticContent,
@@ -52,11 +172,11 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form states - Post
-  const [postForm, setPostForm] = useState({ title: '', description: '', attachmentName: '' });
+  const [postForm, setPostForm] = useState({ title: '', description: '', attachmentName: '', attachmentUrl: '' });
   // Form states - Syllabus
-  const [syllabusForm, setSyllabusForm] = useState({ title: '', classLevel: 'Class 10', subject: '', fileName: '' });
+  const [syllabusForm, setSyllabusForm] = useState({ title: '', classLevel: 'Class 10', subject: '', fileName: '', fileUrl: '' });
   // Form states - Homework
-  const [homeworkForm, setHomeworkForm] = useState({ title: '', classLevel: 'Class 10', subject: '', description: '', dueDate: '', fileName: '' });
+  const [homeworkForm, setHomeworkForm] = useState({ title: '', classLevel: 'Class 10', subject: '', description: '', dueDate: '', fileName: '', fileUrl: '' });
   // Form states - Teacher
   const [teacherForm, setTeacherForm] = useState({ name: '', email: '', phone: '', subjects: '', classes: '' });
   // Form states - Static Content (instantiated with current values)
@@ -68,9 +188,9 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
   const resetForms = () => {
     setShowForm(false);
     setEditingId(null);
-    setPostForm({ title: '', description: '', attachmentName: '' });
-    setSyllabusForm({ title: '', classLevel: 'Class 10', subject: '', fileName: '' });
-    setHomeworkForm({ title: '', classLevel: 'Class 10', subject: '', description: '', dueDate: '', fileName: '' });
+    setPostForm({ title: '', description: '', attachmentName: '', attachmentUrl: '' });
+    setSyllabusForm({ title: '', classLevel: 'Class 10', subject: '', fileName: '', fileUrl: '' });
+    setHomeworkForm({ title: '', classLevel: 'Class 10', subject: '', description: '', dueDate: '', fileName: '', fileUrl: '' });
     setTeacherForm({ name: '', email: '', phone: '', subjects: '', classes: '' });
   };
 
@@ -83,7 +203,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
         title: postForm.title, 
         description: postForm.description, 
         attachmentName: postForm.attachmentName || undefined,
-        attachmentUrl: postForm.attachmentName ? '#' : undefined
+        attachmentUrl: postForm.attachmentUrl || (postForm.attachmentName ? '#' : undefined)
       } : p);
       onUpdatePosts(updated);
     } else {
@@ -93,7 +213,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
         description: postForm.description,
         date: new Date().toISOString().split('T')[0],
         attachmentName: postForm.attachmentName || undefined,
-        attachmentUrl: postForm.attachmentName ? '#' : undefined,
+        attachmentUrl: postForm.attachmentUrl || (postForm.attachmentName ? '#' : undefined),
         authorId: 'admin',
         authorName: 'Admin'
       };
@@ -110,20 +230,30 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
 
   const handleEditPostClick = (p: Post) => {
     setEditingId(p.id);
-    setPostForm({ title: p.title, description: p.description, attachmentName: p.attachmentName || '' });
+    setPostForm({ 
+      title: p.title, 
+      description: p.description, 
+      attachmentName: p.attachmentName || '', 
+      attachmentUrl: p.attachmentUrl || '' 
+    });
     setShowForm(true);
   };
 
   // --- CRUD SYLLABUS ---
   const handleSaveSyllabus = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!syllabusForm.fileName) {
+      alert("Please upload a syllabus file.");
+      return;
+    }
     if (editingId) {
       const updated = syllabus.map(s => s.id === editingId ? { 
         ...s, 
         title: syllabusForm.title, 
         classLevel: syllabusForm.classLevel, 
         subject: syllabusForm.subject, 
-        fileName: syllabusForm.fileName || 'document.pdf' 
+        fileName: syllabusForm.fileName || 'document.pdf',
+        fileUrl: syllabusForm.fileUrl || s.fileUrl || '#'
       } : s);
       onUpdateSyllabus(updated);
     } else {
@@ -133,7 +263,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
         classLevel: syllabusForm.classLevel,
         subject: syllabusForm.subject,
         fileName: syllabusForm.fileName || 'syllabus_blueprint.pdf',
-        fileUrl: '#',
+        fileUrl: syllabusForm.fileUrl || '#',
         authorId: 'admin',
         authorName: 'Admin'
       };
@@ -150,7 +280,13 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
 
   const handleEditSyllabusClick = (s: SyllabusItem) => {
     setEditingId(s.id);
-    setSyllabusForm({ title: s.title, classLevel: s.classLevel, subject: s.subject, fileName: s.fileName });
+    setSyllabusForm({ 
+      title: s.title, 
+      classLevel: s.classLevel, 
+      subject: s.subject, 
+      fileName: s.fileName, 
+      fileUrl: s.fileUrl || '' 
+    });
     setShowForm(true);
   };
 
@@ -166,7 +302,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
         description: homeworkForm.description, 
         dueDate: homeworkForm.dueDate, 
         fileName: homeworkForm.fileName || undefined,
-        fileUrl: homeworkForm.fileName ? '#' : undefined
+        fileUrl: homeworkForm.fileUrl || (homeworkForm.fileName ? '#' : undefined)
       } : h);
       onUpdateHomework(updated);
     } else {
@@ -178,7 +314,7 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
         description: homeworkForm.description,
         dueDate: homeworkForm.dueDate || new Date().toISOString().split('T')[0],
         fileName: homeworkForm.fileName || undefined,
-        fileUrl: homeworkForm.fileName ? '#' : undefined,
+        fileUrl: homeworkForm.fileUrl || (homeworkForm.fileName ? '#' : undefined),
         authorId: 'admin',
         authorName: 'Admin'
       };
@@ -201,7 +337,8 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
       subject: h.subject, 
       description: h.description, 
       dueDate: h.dueDate, 
-      fileName: h.fileName || '' 
+      fileName: h.fileName || '',
+      fileUrl: h.fileUrl || ''
     });
     setShowForm(true);
   };
@@ -521,15 +658,13 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase block">Attached File Name (Optional Mockup)</label>
-                <input 
-                  type="text" placeholder="e.g. circular_winter_holidays_2026.pdf"
-                  value={postForm.attachmentName} onChange={e => setPostForm({ ...postForm, attachmentName: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:ring-2 focus:ring-amber-500"
-                />
-                <span className="text-[10px] text-slate-400 block italic">Leave blank if no downloadable document is attached.</span>
-              </div>
+              <FileUploader 
+                fileName={postForm.attachmentName}
+                fileUrl={postForm.attachmentUrl}
+                onFileChange={(name, url) => setPostForm({ ...postForm, attachmentName: name, attachmentUrl: url })}
+                onClear={() => setPostForm({ ...postForm, attachmentName: '', attachmentUrl: '' })}
+                label="Attached Notice File / Circular Document (Optional)"
+              />
 
               <div className="pt-2 flex gap-3">
                 <button type="submit" className="bg-red-750 hover:bg-red-800 text-white font-bold px-5 py-2 rounded-lg text-xs uppercase tracking-wide">
@@ -645,14 +780,13 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase block">File PDF Name *</label>
-                <input 
-                  type="text" required placeholder="e.g. class_10_physics_blueprint.pdf"
-                  value={syllabusForm.fileName} onChange={e => setSyllabusForm({ ...syllabusForm, fileName: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
+              <FileUploader 
+                fileName={syllabusForm.fileName}
+                fileUrl={syllabusForm.fileUrl}
+                onFileChange={(name, url) => setSyllabusForm({ ...syllabusForm, fileName: name, fileUrl: url })}
+                onClear={() => setSyllabusForm({ ...syllabusForm, fileName: '', fileUrl: '' })}
+                label="Upload Syllabus Document (Required) *"
+              />
 
               <div className="pt-2 flex gap-3">
                 <button type="submit" className="bg-red-750 hover:bg-red-800 text-white font-bold px-5 py-2 rounded-lg text-xs uppercase tracking-wide">
@@ -779,14 +913,13 @@ export const DashboardAdmin: React.FC<DashboardAdminProps> = ({
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase block">Attached Worksheet File Name (Optional)</label>
-                <input 
-                  type="text" placeholder="e.g. algebra_assignment_worksheet.pdf"
-                  value={homeworkForm.fileName} onChange={e => setHomeworkForm({ ...homeworkForm, fileName: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
+              <FileUploader 
+                fileName={homeworkForm.fileName}
+                fileUrl={homeworkForm.fileUrl}
+                onFileChange={(name, url) => setHomeworkForm({ ...homeworkForm, fileName: name, fileUrl: url })}
+                onClear={() => setHomeworkForm({ ...homeworkForm, fileName: '', fileUrl: '' })}
+                label="Attached Worksheet File / Document (Optional)"
+              />
 
               <div className="pt-2 flex gap-3">
                 <button type="submit" className="bg-red-750 hover:bg-red-800 text-white font-bold px-5 py-2 rounded-lg text-xs uppercase tracking-wide">

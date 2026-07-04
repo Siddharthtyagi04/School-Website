@@ -21,11 +21,20 @@ export const Notices: React.FC<NoticesProps> = ({ posts }) => {
     post.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDownload = (id: string, fileName: string) => {
+  const handleDownload = (id: string, fileName: string, fileUrl?: string) => {
     setDownloadingId(id);
     setTimeout(() => {
       setDownloadingId(null);
-      alert(`Successfully downloaded attachment: ${fileName}`);
+      if (fileUrl && fileUrl !== '#') {
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert(`Successfully downloaded attachment: ${fileName}`);
+      }
     }, 1200);
   };
 
@@ -89,7 +98,7 @@ export const Notices: React.FC<NoticesProps> = ({ posts }) => {
                     <span className="text-xs font-semibold">{post.attachmentName}</span>
                   </div>
                   <button 
-                    onClick={() => handleDownload(post.id, post.attachmentName!)}
+                    onClick={() => handleDownload(post.id, post.attachmentName!, post.attachmentUrl)}
                     disabled={downloadingId === post.id}
                     className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3.5 py-1.5 rounded-md text-xs font-bold transition shadow-2xs hover:border-slate-400 disabled:opacity-50"
                   >
