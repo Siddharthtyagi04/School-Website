@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { SchoolDB, Post, SyllabusItem, HomeworkItem, Teacher, ContactSubmission, StaticContent } from './db';
 import { SchoolLogo, VidyaBharatiLogo } from './components/Logos';
 import { Home } from './components/Home';
@@ -471,6 +472,7 @@ export default function App() {
 
       </footer>
 
+      <Analytics />
     </div>
   );
 }
