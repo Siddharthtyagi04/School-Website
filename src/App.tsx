@@ -228,21 +228,42 @@ export default function App() {
       {/* 1. TOP SCROLLING ANNOUNCEMENT TICKER BANNER */}
       <div className="bg-rose-950 text-white text-[10px] md:text-xs font-bold py-2.5 px-4 shadow-sm border-b border-red-900/30 relative z-20 overflow-hidden shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 z-10 bg-rose-950 pr-2">
             <span className="bg-amber-400 text-slate-950 px-2 py-0.5 rounded text-[9px] uppercase tracking-wider font-extrabold animate-pulse">LATEST NOTICE</span>
-            <span className="font-serif italic font-bold">Admissions Session 2026-2027 Open!</span>
           </div>
-          <div className="flex-1 truncate hidden md:block">
-            <span className="text-slate-200 font-light font-mono">
-              &bull; Nursery, KG, and Classes 1 to 10 registrations open &bull; Science & Computer Labs renovated &bull; Sanskrit, Yoga & Modern Computer Coding.
-            </span>
+          <div className="flex-1 overflow-hidden relative py-0.5">
+            <div 
+              onClick={() => handleNavigate('notices')}
+              className="animate-ticker hover:cursor-pointer flex items-center gap-12 whitespace-nowrap"
+            >
+              {(posts && posts.length > 0 ? posts.slice(0, 6) : [
+                { id: '1', title: 'Admissions Open for Session 2026-2027', date: '2026-04-01' },
+                { id: '2', title: 'Nursery, KG, and Classes 1 to 10 registrations are active', date: '2026-04-02' },
+                { id: '3', title: 'Science & Computer Labs completely renovated with modern equipment', date: '2026-04-03' },
+                { id: '4', title: 'Weekly Sanskrit, Yoga & Modern Coding curriculum introduced', date: '2026-04-04' }
+              ]).map((notice, idx) => (
+                <span key={notice.id || idx} className="inline-flex items-center gap-2 text-slate-100 hover:text-amber-300 transition shrink-0">
+                  <span className="text-amber-400 font-bold text-sm">★</span>
+                  <span className="font-serif italic font-bold">
+                    {notice.title}
+                  </span>
+                  {notice.date && (
+                    <span className="text-[10px] text-slate-300 font-light font-mono bg-rose-900/40 px-1.5 py-0.5 rounded">
+                      {new Date(notice.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
-          <button 
-            onClick={() => handleNavigate('contact')}
-            className="text-[9px] uppercase tracking-widest text-amber-300 font-bold hover:underline shrink-0"
-          >
-            Enquire Now &rarr;
-          </button>
+          <div className="shrink-0 z-10 bg-rose-950 pl-2">
+            <button 
+              onClick={() => handleNavigate('contact')}
+              className="text-[9px] uppercase tracking-widest text-amber-300 font-bold hover:underline"
+            >
+              Enquire Now &rarr;
+            </button>
+          </div>
         </div>
       </div>
 
